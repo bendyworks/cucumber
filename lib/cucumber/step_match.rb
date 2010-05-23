@@ -2,8 +2,12 @@ module Cucumber
   class StepMatch #:nodoc:
     attr_reader :step_definition
 
-    def initialize(step_definition, step_name, formatted_step_name, step_arguments)
-      @step_definition, @step_name, @formatted_step_name, @step_arguments = step_definition, step_name, formatted_step_name, step_arguments
+    # Creates a new StepMatch. The +name_to_report+ argument is what's reported, unless it's is,
+    # in which case +name_to_report+ is used instead.
+    # 
+    def initialize(step_definition, name_to_match, name_to_report, step_arguments)
+      raise "name_to_match can't be nil" if name_to_match.nil?
+      @step_definition, @name_to_match, @name_to_report, @step_arguments = step_definition, name_to_match, name_to_report, step_arguments
     end
 
     def args
@@ -11,7 +15,7 @@ module Cucumber
     end
 
     def name
-      @formatted_step_name
+      @name_to_report
     end
 
     def invoke(multiline_arg)
@@ -36,19 +40,19 @@ module Cucumber
     #   lambda { |param| "[#{param}]" }
     #
     def format_args(format = lambda{|a| a}, &proc)
-      @formatted_step_name || replace_arguments(@step_name, @step_arguments, format, &proc)
+      @name_to_report || replace_arguments(@name_to_match, @step_arguments, format, &proc)
     end
-    
+
     def file_colon_line
       @step_definition.file_colon_line
     end
 
     def backtrace_line
-      @step_definition.backtrace_line
+      "#{file_colon_line}:in `#{@step_definition.regexp_source}'"
     end
 
     def text_length
-      @step_definition.text_length
+      @step_definition.regexp_source.jlength
     end
 
     def replace_arguments(string, step_arguments, format, &proc)
@@ -64,8 +68,8 @@ module Cucumber
           format % step_argument.val
         end
 
-        s[step_argument.pos + offset, step_argument.val.jlength] = replacement
-        offset += replacement.length - step_argument.val.jlength
+        s[step_argument.pos + offset, step_argument.val.length] = replacement
+        offset += replacement.jlength - step_argument.val.jlength
       end
       s
     end

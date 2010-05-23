@@ -29,6 +29,7 @@ module Cucumber
         @args         = args
         @out_stream   = out_stream == STDOUT ? Formatter::ColorIO.new : out_stream
         @error_stream = error_stream
+        @configuration = nil
       end
 
       def execute!(step_mother)
@@ -69,11 +70,13 @@ module Cucumber
 
       def exceeded_tag_limts?(features)
         exceeded = false
-        configuration.options[:tag_names].each do |tag_name, limit|
-          if !Ast::Tags.exclude_tag?(tag_name) && limit
-            tag_count = features.tag_count(tag_name)
-            if tag_count > limit.to_i
-              exceeded = true
+        configuration.options[:tag_names].each do |tag_list|
+          tag_list.each do |tag_name, limit|
+            if !Ast::Tags.exclude_tag?(tag_name) && limit
+              tag_count = features.tag_count(tag_name)
+              if tag_count > limit.to_i
+                exceeded = true
+              end
             end
           end
         end
@@ -108,8 +111,8 @@ module Cucumber
 
       def trap_interrupt
         trap('INT') do
-          exit!(1) if $cucumber_interrupted
-          $cucumber_interrupted = true
+          exit!(1) if Cucumber.wants_to_quit
+          Cucumber.wants_to_quit = true
           STDERR.puts "\nExiting... Interrupt again to exit immediately."
         end
       end

@@ -1,3 +1,98 @@
+== In Git
+
+=== New features
+* The HTML formatter produces a much nicer report, with TextMate link integration. (Rob Aldred)
+
+=== Changed Features
+* Per-word trailing-space setting for step keywords using '<'.  See 'fr' in languages.yml for example. (#525 Gregory Hnatiuk)
+* --language is deprecated and will be removed in 0.5.0: http://wiki.github.com/aslakhellesoy/cucumber/spoken-languages (Aslak Hellesøy)
+* Formatters will no longer be passed File objects. They must use ensure_io, ensure_file or ensure_dir. (Aslak Hellesøy)
+* Webrat step "Then I should be on" should use request_uri instead of path for missing query string parameters (ZhangJinzhu)
+
+== 0.4.4 2009-11-13
+
+What a bad day to make a release, but here goes.
+
+=== New features
+* Cucumber should use ActiveSupport::Callbacks for fixtures (#516 Adam Salter)
+* Make 'I' optional in all webrat steps. (Gavin Hughes)
+* Make generated cucumber.rake work with a vendored gem (Alex Rothenberg)
+* Native support for ANSIColor on IronRuby via the iron-term-ansicolor gem (Will Green)
+* Call a bunch of steps from step definitions - also with tables or pystrings. Copy-paste friendly (Bodaniel Jeanes, Jack Chen, Aslak Hellesøy)
+
+=== Bugfixes
+* Pretty printer fails when expanding scenario outlines with -x when the background includes a table (#515 Mike Sassak)
+* Ensure tags used with Before/After hooks always get parsed (#520 Joseph Wilk)
+* Define IRONRUBY correctly on Ruby 1.9 (Joe Van Dyk)
+* RbStepDefinition#invoke calls #backtrace_line on self rather than @proc (#503 Mike Sassak)
+* Avoid duplicate cucumber entries in database.yml (Daniel Hofstetter)
+* Added respond_to? when checking config.cache_classes for older Rails versions (Jeremy Durham)
+
+=== Changed Features
+* The code for Czech has changed from cz to cs. (deepj)
+* $cucumber_interrupted is now Cucumber.wants_to_quit - avoid global variable, which gives warnings. (Aslak Hellesøy)
+* Examples keyword without a colon is deprecated loudly. Gherkin will not recognize it at all. (Gherkin #30 Mike Sassak)
+
+== 0.4.3 2009-10-28
+
+The exciting thing about this release is that the wire protocol is starting to take shape. This means you can
+now use Cucumber with .NET - writing step definitions in C#. And this is without having to use IronRuby at all!
+See Cuke4Nuke (http://wiki.github.com/richardlawrence/Cuke4Nuke) for more information.
+
+As usual there are several small features and bug fixes.
+
+=== New Features
+* Add support for ORing tags which are passed in with seperate --tag arguments. Make comma seperated tags use AND (#368 Joseph Wilk)
+* New Wire Protocol - allowing out of process execution of Cucumber scenarios. (#428 Matt Wynne)
+* Added an example illustrating how to get screenshots in HTML reports (examples/watir) (Aslak Hellesøy)
+* Added new #embed(file, mime_type) method to visitors and Ruby Worlds to make it easier to embed screenshots (Aslak Hellesøy)
+* The #announce method available from Ruby Step Definitions will print *after* the step is executed. (#487 Zoltan Penzeli)
+* Add support for rolling back transaction for all open database connections. (John Ferlito)
+* Show scenario and step summary in HTML formatter (#285 Joseph Wilk)
+* Ast::Table can now be constructed with an Array of Hash. (Aslak Hellesøy)
+
+=== Changed features
+* The #announce method will no longer escape HTML if the html formatter is used. Escaping must be done manually. (Aslak Hellesøy)
+
+=== Bugfixes
+* Fixed incorrect rendering of step arguments with UTF8 characters (Aslak Hellesøy)
+* "--format rerun", with a Scenario Outline, kills cucumber (#492 Aslak Hellesøy)
+* Usage formatter is not reporting time correctly. (Elliot Crosby-McCullough)
+* JUnit formatter raises a more helpful error when run on a feature with no name. (#493 Matt Wynne)
+* Better Danish translation (Thorbjørn Ravn Andersen)
+
+
+== 0.4.2 2009-10-14
+
+Bugfix release. The 0.4.1 release was hosed when switching from Hoe to Jeweler.
+
+== 0.4.1 2009-10-14
+
+This is mostly a bugfix release. Some of Cucumber's own features have been fixed so they pass on more platforms,
+making it easier for people to contribute. The README.txt also describes how to get up and running with the
+development environment.
+
+=== Bugfixes
+* Cucumber's features verified passing on MRI 1.8.6 (OSX), 1.8.7 (OSX), 1.9.1 (OSX/Win) and JRuby 1.4.0RC1 (OSX). (Aslak Hellesøy)
+* Ensure no errors are raised when limiting with tags which are not in the feature set (#464 Joseph Wilk)
+* Missing Romanian keywords added for Examples, Scenario Outline and Background (to my best google translate knowledge) (Aslak Hellesøy)
+* Make rerun and --drb work together again after formatter API changes (#485 Erik Hansson, John Ferlito)
+
+=== New Features
+* The Rails cucumber generator will only default to RSpec if installed. And print better help. (Aslak Hellesøy)
+* Added 'but' variants to Japanese. (Kakutani Shintaro)
+* README.txt explains people how to run all tests. Install gems with geminstaller. (Aslak Hellesøy)
+* Added support for Serbian language, both Cyrillic and Latin with usage examples. (Dejan Dimic)
+* Add new 'debug' formatter for debugging and visualising the calls to listeners. (Matt Wynne)
+
+=== Changed features
+* Use http://github.com/aslakhellesoy/wac instead of http://github.com/aslakhellesoy/ansicolor on Windows/JRuby (#456 Aslak Hellesøy)
+
+=== Internal changes
+* Ditched Hoe for Jeweler (Aslak Hellesøy)
+* Added StepMother#invoke(step_name, multiline_argument=nil) - needed by cuke4duke ticket #26 (Aslak Hellesøy)
+* StepDefinitionMethods is gone.
+
 == 0.4.0 2009-10-09
 
 The back to stable release. When we went from 0.3.11 to 0.3.90 we thought we were close to a 0.4.0 release. Then the community
@@ -15,7 +110,7 @@ that will give you more information so you can solve any problems. If not, just 
 * Transform can now transform tables, using /table:col1,col2,col3/ (#478 Corey Haines)
 * cucumber.yml can also end in .yaml and be located in .config/ or config/ dirs (#447 trans)
 * Turkish support. (Hakan Şenol Ensari)
-* Upgrade Rails generator to set a dependency to Spork 0.7.2. (Aslak Hellesøy)
+* Upgrade Rails generator to set a dependency to Spork 0.7.3. (Aslak Hellesøy)
 * Installation via rubygems will print a message telling people to read this file. (Aslak Hellesøy)
 * Files generated by the Rails cucumber generator have information about the risks of editing. (Aslak Hellesøy)
 * Rotten Cucumber alert on Rails if you upgrade your gem without regenerating with script/generate cucumber. (Aslak Hellesøy)
@@ -23,7 +118,7 @@ that will give you more information so you can solve any problems. If not, just 
 * Make script/cucumber file generated by the Rails cucumber generator look for cucumber in vendored gems as well. (Tom ten Thij)
 
 === Changed Features
-* Step tables now default empty table cells to empty strings and not nil (#470 Joseph Wilk) 
+* Step tables now default empty table cells to empty strings and not nil (#470 Joseph Wilk)
 
 === Removed Features
 * The feature_list, feature_pattern, step_list and step_pattern properties are removed from the Rake task. Use profiles instead. (Aslak Hellesøy)
@@ -43,7 +138,7 @@ that will give you more information so you can solve any problems. If not, just 
 * Language help broken (#467 Matt Wynne)
 * Language help formatter aligns output better on Ruby 1.8.6 (Aslak Hellesøy)
 * Better backtraces for Ruby 1.8.7. (Jakob Skov-Pedersen)
-* String step definitions ( Given 'I have $number cucumbers' ) are escaped before being turned into regular expressions. (David Waite) 
+* String step definitions ( Given 'I have $number cucumbers' ) are escaped before being turned into regular expressions. (David Waite)
 
 == 0.3.104 2009-09-27
 
@@ -91,7 +186,7 @@ Using this release on a Rails project requires a rerun of script/generate cucumb
 == 0.3.102 2009-09-22
 
 This release has some changes in the Rails support, so make sure you run "script/generate cucumber" after you upgrade.
-Other noteworthy new features are improved Hook, tags and Transform support, and as always - several smaler bug fixes.
+Other noteworthy new features are improved Hook, tags and Transform support, and as always - several smaller bug fixes.
 
 === New Features
 * Added new internal API for Regexp and groups, allowing other programming languages to leverage native regexps. (Aslak Hellesøy)

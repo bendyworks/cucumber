@@ -22,6 +22,7 @@ module Cucumber
       def initialize(step, name, multiline_arg, matched_cells)
         @step, @name, @multiline_arg, @matched_cells = step, name, multiline_arg, matched_cells
         status!(:skipped)
+        @skip_invoke = @exception = @step_match = @different_table = @reported_exception = @background = nil
       end
 
       def background?
@@ -33,7 +34,7 @@ module Cucumber
       end
 
       def accept(visitor)
-        return if $cucumber_interrupted
+        return if Cucumber.wants_to_quit
         invoke(visitor.step_mother, visitor.options)
         visit_step_result(visitor)
       end
@@ -105,6 +106,9 @@ module Cucumber
 
       def filter_backtrace(e)
         return e if Cucumber.use_full_backtrace
+        pwd = /#{Dir.pwd}\//m
+        (e.backtrace || []).each{|line| line.gsub!(pwd, "./")}
+        
         filtered = (e.backtrace || []).reject do |line|
           BACKTRACE_FILTER_PATTERNS.detect { |p| line =~ p }
         end
@@ -138,7 +142,7 @@ module Cucumber
       end
 
       def actual_keyword
-        repeat_keywords = [language.but_keywords, language.and_keywords].flatten
+        repeat_keywords = [language.but_keywords(false), language.and_keywords(false)].flatten
         if repeat_keywords.index(@step.keyword) && previous
           previous.actual_keyword
         else

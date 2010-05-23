@@ -1,5 +1,6 @@
 require 'cucumber/formatter/ansicolor'
 require 'cucumber/formatter/duration'
+require 'cucumber/formatter/summary'
 
 module Cucumber
   module Formatter
@@ -8,6 +9,7 @@ module Cucumber
     module Console
       extend ANSIColor
       include Duration
+      include Summary
 
       FORMATS = Hash.new{|hash, format| hash[format] = method(format).to_proc}
 
@@ -73,11 +75,8 @@ module Cucumber
           @io.puts
         end
 
-        @io.print dump_count(step_mother.scenarios.length, "scenario")
-        print_status_counts{|status| step_mother.scenarios(status)}
-
-        @io.print dump_count(step_mother.steps.length, "step")
-        print_status_counts{|status| step_mother.steps(status)}
+        @io.puts scenario_summary(step_mother) {|status_count, status| format_string(status_count, status)}
+        @io.puts step_summary(step_mother) {|status_count, status| format_string(status_count, status)}
 
         @io.puts(format_duration(features.duration)) if features && features.duration
 
@@ -126,17 +125,20 @@ module Cucumber
       end
 
       def print_tag_limit_warnings(options)
-        first_tag = true
-        options[:tag_names].each do |tag_name, limit|
-          unless Ast::Tags.exclude_tag?(tag_name)
-            # @tag_occurrences ||= Hash.new{|k,v| k[v] = []}
-            tag_frequency = @tag_occurrences[tag_name].size
-            if limit && tag_frequency > limit
-              @io.puts if first_tag
-              first_tag = false
-              @io.puts format_string("#{tag_name} occurred #{tag_frequency} times, but the limit was set to #{limit}", :failed)
-              @tag_occurrences[tag_name].each {|location| @io.puts format_string("  #{location}", :failed)}
-              @io.flush
+        if @tag_occurrences
+          first_tag = true
+          options[:tag_names].each do |tag_list|
+            tag_list.each do |tag_name, limit|
+              unless Ast::Tags.exclude_tag?(tag_name)
+                tag_frequency = @tag_occurrences[tag_name].size
+                if limit && tag_frequency > limit
+                  @io.puts if first_tag
+                  first_tag = false
+                  @io.puts format_string("#{tag_name} occurred #{tag_frequency} times, but the limit was set to #{limit}", :failed)
+                  @tag_occurrences[tag_name].each {|location| @io.puts format_string("  #{location}", :failed)}
+                  @io.flush
+                end
+              end
             end
           end
         end
@@ -144,36 +146,53 @@ module Cucumber
 
       def record_tag_occurrences(feature_element, options)
         @tag_occurrences ||= Hash.new{|k,v| k[v] = []}
-        options[:tag_names].each do |tag_name, limit|
-          if !Ast::Tags.exclude_tag?(tag_name) && feature_element.tag_count(tag_name) > 0
-            @tag_occurrences[tag_name] << feature_element.file_colon_line
+        options[:tag_names].each do |tag_list|
+          tag_list.each do |tag_name, limit|
+            if !Ast::Tags.exclude_tag?(tag_name) && feature_element.tag_count(tag_name) > 0
+              @tag_occurrences[tag_name] << feature_element.file_colon_line
+            end
           end
         end
       end
 
-      def announce(announcement)
-        @io.puts
-        @io.puts(format_string(announcement, :tag))
-        @io.flush
+      def embed(file, mime_type)
+        # no-op
       end
 
-    private
-
-      def print_status_counts
-        counts = [:failed, :skipped, :undefined, :pending, :passed].map do |status|
-          elements = yield status
-          elements.any? ? format_string("#{elements.length} #{status.to_s}", status) : nil
-        end.compact
-        if counts.any?
-          @io.puts(" (#{counts.join(', ')})")
+      #define @delayed_announcements = [] in your Formatter if you want to
+      #activate this feature
+      def announce(announcement)
+        if @delayed_announcements
+          @delayed_announcements << announcement
         else
           @io.puts
+          @io.puts(format_string(announcement, :tag))
+          @io.flush
         end
       end
 
-      def dump_count(count, what, state=nil)
-        [count, state, "#{what}#{count == 1 ? '' : 's'}"].compact.join(" ")
+      def print_announcements()
+        @delayed_announcements.each {|ann| print_announcement(ann)}
+        empty_announcements
       end
+
+      def print_table_row_announcements
+        return if @delayed_announcements.empty?
+        @io.print(format_string(@delayed_announcements.join(', '), :tag).indent(2))
+        @io.flush
+        empty_announcements
+      end
+
+      def print_announcement(announcement)
+        @io.puts(format_string(announcement, :tag).indent(@indent))
+        @io.flush
+      end
+
+      def empty_announcements
+        @delayed_announcements = []
+      end
+
+    private
 
       def format_for(*keys)
         key = keys.join('_').to_sym

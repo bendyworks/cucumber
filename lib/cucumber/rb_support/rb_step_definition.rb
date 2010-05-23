@@ -16,7 +16,6 @@ module Cucumber
     #   end
     #
     class RbStepDefinition
-      include LanguageSupport::StepDefinitionMethods
 
       class MissingProc < StandardError
         def message
@@ -58,6 +57,10 @@ module Cucumber
           e.backtrace.unshift(self.backtrace_line)
           raise e
         end
+      end
+
+      def backtrace_line
+        @proc.backtrace_line(regexp_source)
       end
 
       def file_colon_line

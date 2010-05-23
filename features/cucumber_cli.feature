@@ -58,7 +58,6 @@ Feature: Cucumber command line
 
     """
 
-  @mri186
   Scenario: Specify 2 line numbers where one is a tag
     When I run cucumber -q features/sample.feature:5:16
     Then it should fail with
@@ -147,7 +146,6 @@ Feature: Cucumber command line
 
       """
 
-  @mri186
   Scenario: Run all with progress formatter
     When I run cucumber -q --format progress features/sample.feature
     Then it should fail with
@@ -171,7 +169,7 @@ Feature: Cucumber command line
 
   Scenario: Run Norwegian
     Given I am in i18n/no
-    When I run cucumber -q --language no features
+    When I run cucumber -q features
     Then STDERR should be empty
     Then it should pass with
       """
@@ -371,7 +369,8 @@ Feature: Cucumber command line
 
   Scenario: Multiple formatters and outputs
     When I run cucumber --format progress --out tmp/progress.txt --format pretty --out tmp/pretty.txt --no-source --dry-run features/lots_of_undefined.feature
-    And "examples/self_test/tmp/progress.txt" should contain
+    Then STDERR should be empty
+    Then "examples/self_test/tmp/progress.txt" should contain
       """
       UUUUU
 
@@ -465,7 +464,6 @@ Feature: Cucumber command line
 
       """
 
-  @mri186
   Scenario: Run with a tag that exists on 1 feature
     When I run cucumber -q features --tags @one
     Then it should fail with
@@ -591,6 +589,7 @@ Feature: Cucumber command line
 
   Scenario: Reformat files with --autoformat
     When I run cucumber --autoformat tmp/formatted features
+    Then STDERR should be empty
     Then "examples/self_test/tmp/formatted/features/sample.feature" should contain
       """
       # Feature comment
@@ -619,12 +618,13 @@ Feature: Cucumber command line
       """
 
   Scenario: Generate PDF with pdf formatter
-		When I run cucumber --format pdf --out tmp/sample.pdf --dry-run features/sample.feature
-		Then "examples/self_test/tmp/sample.pdf" should match "Pages 2"
+	When I run cucumber --format pdf --out tmp/sample.pdf --dry-run features/sample.feature
+	Then STDERR should be empty
+	Then "examples/self_test/tmp/sample.pdf" should match "Pages 2"
 
   Scenario: Run feature elements which match a name using -n
     When I run cucumber -n Pisang -q features/
-    Then it should pass with
+	Then it should pass with
       """
       Feature: search examples
 

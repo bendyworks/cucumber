@@ -4,12 +4,12 @@ require 'cucumber/step_definition_light'
 module Cucumber
   module LanguageSupport
     module LanguageMethods
-      def create_step_match(step_definition, step_name, formatted_step_name, step_arguments)
-        StepMatch.new(step_definition, step_name, formatted_step_name, step_arguments)
+      def create_step_match(step_definition, step_name, name_to_report, step_arguments)
+        StepMatch.new(step_definition, step_name, name_to_report, step_arguments)
       end
-      
+
       def before(scenario)
-        begin_scenario
+        begin_scenario(scenario)
         execute_before(scenario)
       end
 
@@ -17,7 +17,7 @@ module Cucumber
         execute_after(scenario)
         end_scenario
       end
-      
+
       def after_configuration(configuration)
         hooks[:after_configuration].each do |hook|
           hook.invoke('AfterConfiguration', configuration)
@@ -38,6 +38,7 @@ module Cucumber
       end
 
       def add_hook(phase, hook)
+        hook.tag_name_lists = hook.tag_names.map {|tag_string| Ast::Tags.parse_tags(tag_string)}
         hooks[phase.to_sym] << hook
         hook
       end
